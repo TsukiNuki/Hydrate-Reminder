@@ -108,7 +108,7 @@ void loop(){
       FastLED.show();             //Now actually light up the leds.
       
       if(debug_logs)
-      Serial.println("Ara Ara Shota-kun keep drinking water!!!!");
+      Serial.println("Keep drinking water!!!!");
     }
      else 
     {
