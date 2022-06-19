@@ -65,7 +65,7 @@ void loop(){
       FastLED.show();
   }*/
   
-  if(value >=150)    //I assumed 800 since you assumed the value 800; This case is when glass is placed on the contraption
+  if(value >=150)    //This is regarding the value of the pressure put on FSR
   {
     if(millis()-last_time_water_drank >= 30 * 1000)    //been more than 30 minutes since you drank water. multiply by 60000 to convert to milli second
     {
