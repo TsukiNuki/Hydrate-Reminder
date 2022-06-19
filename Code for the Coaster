@@ -7,7 +7,7 @@
 #include "FastLED.h" 
 
 //Constants:
-const int ledPin = 5;     //pin 3 has PWM funtion
+const int ledPin = 5;     //pin 5 has PWM funtion
 const int sensorPin = A0; //pin A0 to read analog input
 
 //Variables:
