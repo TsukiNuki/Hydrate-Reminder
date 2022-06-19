@@ -54,8 +54,6 @@ void loop(){
   Serial.println(value);               //Print value
   
   
- //You don't need this part of the code. Also reusing the variable 'value' to mean two different things is not advisable. over here it is storing the 
- //analogRead of the sensorPin AND also it is storing the value of the intensity of red LED. BAD PROGRAMMING MANNERS!!! Don't do this.
 
 /*  value = map(value, 0, 1023, 0, 255); //Map value 0-1023 to 0-255 (PWM)
   analogWrite(ledPin, value);          //Send PWM value to led
