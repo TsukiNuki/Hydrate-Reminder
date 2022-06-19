@@ -1,0 +1,180 @@
+//This code is ment for the Hydrate Reminder on Instructables.com
+
+/* How to use a Force sensitive resistor to fade an LED with Arduino
+   More info: http://www.ardumotive.com/how-to-use-a-force-sensitive-resistor-en.html 
+   Dev: Michalis Vasilakis // Date: 22/9/2015 // www.ardumotive.com  */
+   
+#include "FastLED.h" 
+
+//Constants:
+const int ledPin = 5;     //pin 3 has PWM funtion
+const int sensorPin = A0; //pin A0 to read analog input
+
+//Variables:
+int value; //save analog value
+
+#if FASTLED_VERSION < 3001000
+#error "Requires FastLED 3.1 or later; check github for latest code."
+#endif
+
+#define DATA_PIN    3
+//#define CLK_PIN   4
+#define LED_TYPE    WS2811
+#define COLOR_ORDER RGB
+#define NUM_LEDS    4
+#define BRIGHTNESS  255
+
+CRGB leds[NUM_LEDS];
+
+unsigned long last_time_water_drank=0;      //this variable will keep track of how much time has been spent since last time sensor was turned off and on
+int debug_logs = 1;              //Set this to 0 when you don't need debug logs anymore
+
+void setup(){
+  pinMode(ledPin, OUTPUT);  //Set pin 3 as 'output' 
+  Serial.begin(9600);       //Begin serial communication
+
+    delay(3000); // 3 second delay for recovery
+  
+  // tell FastLED about the LED strip configuration
+  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS)
+    .setCorrection(TypicalLEDStrip)
+    .setDither(BRIGHTNESS < 255);
+
+  // set master brightness control
+  FastLED.setBrightness(BRIGHTNESS);
+
+  last_time_water_drank=millis();     // Intialize the variable with the current time.
+}
+
+
+
+
+void loop(){
+  value = analogRead(sensorPin);       //Read and save analog value from potentiometer
+  Serial.println(value);               //Print value
+  
+  
+ //You don't need this part of the code. Also reusing the variable 'value' to mean two different things is not advisable. over here it is storing the 
+ //analogRead of the sensorPin AND also it is storing the value of the intensity of red LED. BAD PROGRAMMING MANNERS!!! Don't do this.
+
+/*  value = map(value, 0, 1023, 0, 255); //Map value 0-1023 to 0-255 (PWM)
+  analogWrite(ledPin, value);          //Send PWM value to led
+
+  while (value >= 800){
+      pride();
+      FastLED.show();
+  }*/
+  
+  if(value >=150)    //I assumed 800 since you assumed the value 800; This case is when glass is placed on the contraption
+  {
+    if(millis()-last_time_water_drank >= 30 * 1000)    //been more than 30 minutes since you drank water. multiply by 60000 to convert to milli second
+    {
+      for(int i=0;i<NUM_LEDS;i++)
+      {
+        leds[i]=CRGB::Red;          // set all leds to RED
+      }
+      FastLED.show();             //Now actually light up the leds.
+      
+      if(debug_logs)
+      Serial.println("DRINK WATER ALREADY YOU THIRSTY MUDAFUKA!!!!");
+      
+    }
+    else if(millis()-last_time_water_drank >= 25 * 1000)   //been more than 25 minutes since you drank water. multiply by 60000 to convert to milli second
+    {
+      for(int i=0;i<NUM_LEDS;i++)
+      {
+        leds[i]=CRGB::Yellow;         // set all leds to Yellow
+      }
+      FastLED.show();             //Now actually light up the leds.
+      
+      if(debug_logs)
+      Serial.println("Oi drink water or else you gonna die!!!");
+    }
+    else if(millis()-last_time_water_drank >= 10 * 1000)   //been more than 10 minutes since you drank water. multiply by 60000 to convert to milli second
+    {
+      for(int i=0;i<NUM_LEDS;i++)
+      {
+        leds[i]=CRGB::Green;          // set all leds to Yellow
+      }
+      FastLED.show();             //Now actually light up the leds.
+      
+      if(debug_logs)
+      Serial.println("Don't forget to drink water!");
+    }
+    else if(millis()-last_time_water_drank >= 6 * 1000) //NOT been more than 10 minutes since you drank water. multiply by 60000 to convert to milli second
+    {
+      for(int i=0;i<NUM_LEDS;i++)
+      {
+        leds[i]=CRGB::Blue;         // set all leds to Blue
+      }
+      FastLED.show();             //Now actually light up the leds.
+      
+      if(debug_logs)
+      Serial.println("Ara Ara Shota-kun keep drinking water!!!!");
+    }
+     else 
+    {
+      pride();
+      FastLED.show();             //Now actually light up the leds.
+      
+      if(debug_logs)
+      Serial.println("Water is being drank");
+    }
+  }
+  else              //When glass is not placed on the contraption anymore
+  {
+   for(int i=0;i<NUM_LEDS;i++)
+      {
+        leds[i]=CRGB::Black;         // Turns the led off
+      }
+   // pride();          //Do your fancy lighting
+    FastLED.show();       //Light up the LEDs
+    last_time_water_drank=millis();    // Reset the timer since glass has been lifted
+    
+    if(debug_logs)
+    Serial.println("Water is being drunk!!!!");
+  }
+  
+  delay(100);         //Smol delay uWu
+}
+
+void pride() 
+{
+  static uint16_t sPseudotime = 0;
+  static uint16_t sLastMillis = 0;
+  static uint16_t sHue16 = 0;
+ 
+  uint8_t sat8 = beatsin88( 87, 220, 250);
+  uint8_t brightdepth = beatsin88( 341, 96, 224);
+  uint16_t brightnessthetainc16 = beatsin88( 203, (25 * 256), (40 * 256));
+  uint8_t msmultiplier = beatsin88(147, 23, 60);
+
+  uint16_t hue16 = sHue16;//gHue * 256;
+  uint16_t hueinc16 = beatsin88(113, 1, 3000);
+  
+  uint16_t ms = millis();
+  uint16_t deltams = ms - sLastMillis ;
+  sLastMillis  = ms;
+  sPseudotime += deltams * msmultiplier;
+  sHue16 += deltams * beatsin88( 400, 5,9);
+  uint16_t brightnesstheta16 = sPseudotime;
+  
+  for( uint16_t i = 0 ; i < NUM_LEDS; i++) {
+    hue16 += hueinc16;
+    uint8_t hue8 = hue16 / 256;
+
+    brightnesstheta16  += brightnessthetainc16;
+    uint16_t b16 = sin16( brightnesstheta16  ) + 32768;
+
+    uint16_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536;
+    uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536;
+    bri8 += (255 - brightdepth);
+    
+    CRGB newcolor = CHSV( hue8, sat8, bri8);
+    
+    uint16_t pixelnumber = i;
+    pixelnumber = (NUM_LEDS-1) - pixelnumber;
+    
+    nblend( leds[pixelnumber], newcolor, 64);
+  }
+}
